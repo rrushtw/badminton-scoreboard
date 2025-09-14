@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="h-full">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>羽球記分板</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .modal {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal.is-active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* 在窄螢幕橫向時隱藏標題 */
+        @media (max-height: 500px) {
+            .hide-title-on-landscape {
+                display: none;
+            }
+        }
+
+        /* 橫向模式樣式 */
+        @media (orientation: landscape) and (max-height: 600px) {
+            body {
+                padding: 0 !important;
+                overflow: hidden;
+            }
+
+            #app {
+                height: 100vh;
+                width: 100vw;
+                max-width: 100%;
+                border-radius: 0;
+                padding: 0;
+                margin: 0;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .scores-container {
+                flex-grow: 1;
+                display: flex;
+                flex-direction: row;
+                gap: 0;
+                margin-bottom: 0;
+            }
+
+            #teamA, #teamB {
+                border-radius: 0;
+                padding-top: 2rem;
+                padding-bottom: 2rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+            }
+            
+            #teamA {
+                border-right: 2px solid #4a5568;
+            }
+
+            .score-button {
+                display: none;
+            }
+            
+            /* 新增：專為橫向模式設定的超大字體 */
+            #scoreA, #scoreB {
+                font-size: clamp(5rem, 60vh, 25rem);
+            }
+
+            #servingA, #servingB {
+                position: absolute;
+                top: 1rem;
+                font-size: 1.5rem;
+            }
+
+            .controls-container {
+                position: fixed;
+                bottom: 1rem;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 10;
+                background-color: rgba(31, 41, 55, 0.8);
+                padding: 0.5rem 1rem;
+                border-radius: 9999px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 text-white p-4 flex items-center justify-center min-h-screen">
+
+    <div id="app" class="bg-gray-800 p-6 rounded-3xl shadow-2xl w-full max-w-lg mx-auto">
+        <div class="text-center mb-6 hide-title-on-landscape">
+            <h1 class="text-3xl md:text-5xl font-extrabold text-teal-400 drop-shadow-lg">羽球記分板</h1>
+        </div>
+
+        <div class="flex flex-col md:flex-row flex-wrap justify-center items-stretch gap-6 md:gap-8 mb-4 scores-container">
+            <div id="teamA" class="flex-1 min-w-[240px] bg-gray-700 p-6 rounded-2xl flex items-center justify-between">
+
+                <button onclick="scorePoint(0)"
+                    class="score-button w-12 h-12 flex items-center justify-center bg-teal-500 hover:bg-teal-600 text-white text-2xl font-bold rounded-full shadow-md">+</button>
+
+                <div class="text-center flex-1 px-4">
+                    <h2 id="teamAName" class="text-lg md:text-2xl font-bold mb-1">隊伍A</h2>
+                    <p id="servingA" class="text-teal-400 font-semibold h-5 text-sm md:text-base"></p>
+                    <span id="scoreA"
+                        class="block font-extrabold text-teal-300 text-[clamp(5rem,25vw,10rem)] leading-none">0</span>
+                </div>
+
+                <button onclick="deductPoint(0)"
+                    class="score-button w-12 h-12 flex items-center justify-center bg-gray-600 hover:bg-gray-500 text-white text-2xl font-bold rounded-full shadow-md">-</button>
+            </div>
+
+            <div id="teamB" class="flex-1 min-w-[240px] bg-gray-700 p-6 rounded-2xl flex items-center justify-between">
+
+                <button onclick="scorePoint(1)"
+                    class="score-button w-12 h-12 flex items-center justify-center bg-teal-500 hover:bg-teal-600 text-white text-2xl font-bold rounded-full shadow-md">+</button>
+
+                <div class="text-center flex-1 px-4">
+                    <h2 id="teamBName" class="text-lg md:text-2xl font-bold mb-1">隊伍B</h2>
+                    <p id="servingB" class="text-teal-400 font-semibold h-5 text-sm md:text-base"></p>
+                    <span id="scoreB"
+                        class="block font-extrabold text-teal-300 text-[clamp(5rem,25vw,10rem)] leading-none">0</span>
+                </div>
+
+                <button onclick="deductPoint(1)"
+                    class="score-button w-12 h-12 flex items-center justify-center bg-gray-600 hover:bg-gray-500 text-white text-2xl font-bold rounded-full shadow-md">-</button>
+            </div>
+        </div>
+
+        <div class="flex justify-center gap-4 controls-container">
+            <button id="resetButton"
+                class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:scale-105 transition"
+                onclick="resetGame()">重新開始</button>
+            <button id="fullscreenButton"
+                class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:scale-105 transition"
+                onclick="toggleFullScreen()">全螢幕</button>
+        </div>
+    </div>
+
+    <div id="modal"
+        class="modal fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 opacity-0 invisible">
+        <div class="bg-gray-800 rounded-2xl p-8 max-w-lg w-full text-center shadow-2xl relative">
+            <button class="absolute top-4 right-4 text-gray-400 hover:text-white" onclick="closeModal()">
+                ✕
+            </button>
+            <h3 id="modalTitle" class="text-2xl font-bold mb-4 text-teal-400"></h3>
+            <p id="modalMessage" class="text-lg text-gray-300"></p>
+            <button
+                class="mt-6 bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-6 rounded-full hover:scale-105 transition"
+                onclick="closeModal()">確認</button>
+        </div>
+    </div>
+
+    <script>
+        // 隊伍名稱和分數
+        let teamNames = ["隊伍A", "隊伍B"];
+        let scores = [0, 0];
+        // 0 代表隊伍 A，1 代表隊伍 B
+        let servingTeamIndex = 0;
+        let gameOver = false;
+        let touchStartY = 0;
+        const swipeThreshold = 50; // 觸控手勢的最小距離（像素）
+
+        // 獲取 DOM 元素
+        const scoreAEl = document.getElementById('scoreA');
+        const scoreBEl = document.getElementById('scoreB');
+        const servingAEl = document.getElementById('servingA');
+        const servingBEl = document.getElementById('servingB');
+        const teamAEl = document.getElementById('teamA');
+        const teamBEl = document.getElementById('teamB');
+        const modalEl = document.getElementById('modal');
+        const modalTitleEl = document.getElementById('modalTitle');
+        const modalMessageEl = document.getElementById('modalMessage');
+
+        // 更新 UI
+        function updateUI() {
+            scoreAEl.textContent = scores[0];
+            scoreBEl.textContent = scores[1];
+
+            // 檢查發球權
+            if (!gameOver) {
+                servingAEl.textContent = servingTeamIndex === 0 ? "發球" : "";
+                servingBEl.textContent = servingTeamIndex === 1 ? "發球" : "";
+            } else {
+                servingAEl.textContent = "";
+                servingBEl.textContent = "";
+            }
+        }
+
+        // 顯示模態視窗
+        function showModal(title, message) {
+            modalTitleEl.textContent = title;
+            modalMessageEl.textContent = message;
+            modalEl.classList.add('is-active');
+        }
+
+        // 關閉模態視窗
+        function closeModal() {
+            modalEl.classList.remove('is-active');
+        }
+
+        // 檢查比賽是否結束
+        function checkGameOver() {
+            const score1 = scores[0];
+            const score2 = scores[1];
+
+            if (score1 >= 21 || score2 >= 21) {
+                if (Math.abs(score1 - score2) >= 2) {
+                    gameOver = true;
+                    let winner = score1 > score2 ? teamNames[0] : teamNames[1];
+                    showModal("比賽結束！", `恭喜 ${winner} 贏得比賽！`);
+                } else if (score1 === 29 && score2 === 29) {
+                    // 29-29平手，下一分者直接獲勝
+                    if (score1 === 30) {
+                        gameOver = true;
+                        showModal("比賽結束！", `恭喜 ${teamNames[0]} 贏得比賽！`);
+                    } else if (score2 === 30) {
+                        gameOver = true;
+                        showModal("比賽結束！", `恭喜 ${teamNames[1]} 贏得比賽！`);
+                    }
+                }
+            }
+        }
+
+        // 計分功能 (上滑)
+        function scorePoint(winningTeamIndex) {
+            if (gameOver) return;
+
+            // *** 已移除11分換邊提示的功能 ***
+            // const totalScore = scores[0] + scores[1];
+            // if (totalScore === 10) {
+            //     showModal("換邊提示", "兩隊總分達到 11 分，請換邊。");
+            // }
+
+            // 如果得分方是當前的發球方
+            if (winningTeamIndex === servingTeamIndex) {
+                scores[winningTeamIndex]++;
+            } else {
+                // 如果得分方是接球方，則發球權轉移
+                scores[winningTeamIndex]++;
+                servingTeamIndex = winningTeamIndex;
+            }
+
+            updateUI();
+            checkGameOver();
+        }
+
+        // 扣分功能 (下滑)
+        function deductPoint(teamIndex) {
+            if (gameOver) return;
+            if (scores[teamIndex] > 0) {
+                scores[teamIndex]--;
+                updateUI();
+            }
+        }
+
+        // 重置遊戲
+        function resetGame() {
+            scores = [0, 0];
+            servingTeamIndex = 0;
+            gameOver = false;
+            updateUI();
+            showModal("遊戲重置", "比賽已重置。");
+        }
+        
+        // 全螢幕功能
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    alert(`進入全螢幕失敗: ${err.message} (${err.name})`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        // 觸控事件處理器
+        function handleTouchStart(e) {
+            touchStartY = e.touches[0].clientY;
+        }
+
+        function handleTouchEnd(e) {
+            if (gameOver) return;
+            const touchEndY = e.changedTouches[0].clientY;
+            const deltaY = touchStartY - touchEndY;
+            const teamIndex = e.currentTarget.id === 'teamA' ? 0 : 1;
+
+            if (deltaY > swipeThreshold) {
+                // 上滑
+                scorePoint(teamIndex);
+            } else if (deltaY < -swipeThreshold) {
+                // 下滑
+                deductPoint(teamIndex);
+            }
+        }
+
+        // 初始設定
+        document.addEventListener('DOMContentLoaded', () => {
+            updateUI();
+
+            // 添加觸控事件監聽器
+            teamAEl.addEventListener('touchstart', handleTouchStart);
+            teamAEl.addEventListener('touchend', handleTouchEnd);
+            teamBEl.addEventListener('touchstart', handleTouchStart);
+            teamBEl.addEventListener('touchend', handleTouchEnd);
+        });
+    </script>
+</body>
+
+</html>
