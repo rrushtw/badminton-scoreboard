@@ -1,24 +1,709 @@
 <!DOCTYPE html>
-<html lang="zh-TW" class="h-full">
+<html lang="zh-TW" class="full-height">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>羽球記分板</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
+        /* 基礎樣式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        @media (min-width: 768px) {
+            body {
+                padding: 2rem;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            body {
+                padding: 3rem;
+            }
+        }
+
+        .full-height {
+            height: 100%;
+        }
+
+        /* 主容器 */
+        .app-container {
+            background-color: #1f2937;
+            padding: 1.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            max-width: 48rem;
+            margin: 0 auto;
+        }
+
+        @media (min-width: 1024px) {
+            .app-container {
+                max-width: 64rem;
+                padding: 2rem;
+            }
+        }
+
+        @media (min-width: 1280px) {
+            .app-container {
+                max-width: 72rem;
+                padding: 2.5rem;
+            }
+        }
+
+        /* 標題區域 */
+        .title-section {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .hide-title-on-landscape {
+            display: block;
+        }
+
+        .main-title {
+            font-size: 1.875rem;
+            font-weight: 800;
+            color: #2dd4bf;
+            text-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (min-width: 768px) {
+            .main-title {
+                font-size: 3rem;
+            }
+        }
+
+        /* 分數容器 - 預設直向佈局 */
+        .scores-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        /* 橫向模式 - 左右顯示 */
+        @media (orientation: landscape) {
+            .scores-container {
+                display: flex !important;
+                flex-direction: row !important;
+                gap: 1rem;
+                justify-content: center;
+                align-items: stretch;
+                width: 100%;
+                max-width: 100%;
+            }
+            
+            .team-section {
+                flex: 1;
+                max-width: 50%;
+                min-width: 0;
+            }
+        }
+
+        /* 直向模式 - 上下顯示 */
+        @media (orientation: portrait) {
+            .scores-container {
+                display: flex;
+                flex-direction: column;
+                gap: 1.5rem;
+                align-items: center;
+            }
+        }
+
+        /* 特殊處理極小螢幕 - 只在直向時強制上下佈局 */
+        @media (max-width: 500px) and (orientation: portrait) {
+            body {
+                padding: 0.125rem;
+                min-height: 100vh;
+                overflow-y: auto;
+            }
+            
+            .app-container {
+                padding: 0.5rem;
+                max-width: 100%;
+                min-height: calc(100vh - 0.25rem);
+            }
+            
+            .title-section {
+                margin-bottom: 0.5rem;
+            }
+            
+            .main-title {
+                font-size: 1.25rem;
+            }
+            
+            .scores-container {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+                align-items: center;
+                margin-bottom: 0.25rem;
+            }
+            
+            .team-section {
+                width: 100%;
+                max-width: 100%;
+                padding: 0.375rem;
+                min-height: auto;
+            }
+            
+            .score-display {
+                font-size: clamp(1.5rem, 8vw, 3rem);
+                margin: 0.0625rem 0;
+            }
+            
+            .team-name {
+                font-size: 0.75rem;
+                margin-bottom: 0.03125rem;
+            }
+            
+            .serving-indicator {
+                font-size: 0.5rem;
+                height: 0.75rem;
+            }
+            
+            .score-button {
+                width: 1.5rem;
+                height: 1.5rem;
+                font-size: 0.75rem;
+            }
+            
+            .controls-container {
+                gap: 0.25rem;
+                margin-top: 0.25rem;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .control-button {
+                padding: 0.25rem 0.75rem;
+                font-size: 0.625rem;
+                min-width: 0;
+            }
+        }
+
+
+        /* 特殊處理789x432尺寸 */
+        @media (min-width: 780px) and (max-width: 800px) and (min-height: 420px) and (max-height: 450px) {
+            body {
+                padding: 0.25rem;
+                min-height: 100vh;
+                overflow-y: auto;
+            }
+            
+            .app-container {
+                padding: 0.75rem;
+                max-width: 100%;
+                min-height: calc(100vh - 0.5rem);
+            }
+            
+            .title-section {
+                margin-bottom: 0.75rem;
+            }
+            
+            .main-title {
+                font-size: 1.5rem;
+            }
+            
+            .scores-container {
+                display: flex;
+                flex-direction: column;
+                gap: 0.375rem;
+                align-items: center;
+                margin-bottom: 0.375rem;
+            }
+            
+            .team-section {
+                width: clamp(160px, 55vw, 14rem);
+                padding: 0.5rem;
+                min-height: auto;
+            }
+            
+            .score-display {
+                font-size: clamp(2rem, 10vw, 4rem);
+                margin: 0.125rem 0;
+            }
+            
+            .team-name {
+                font-size: 0.875rem;
+                margin-bottom: 0.0625rem;
+            }
+            
+            .serving-indicator {
+                font-size: 0.625rem;
+                height: 0.875rem;
+            }
+            
+            .score-button {
+                width: 2rem;
+                height: 2rem;
+                font-size: 1rem;
+            }
+            
+            .controls-container {
+                gap: 0.5rem;
+                margin-top: 0.375rem;
+            }
+            
+            .control-button {
+                padding: 0.375rem 1rem;
+                font-size: 0.75rem;
+            }
+        }
+
+        /* 特殊處理中等尺寸螢幕 */
+        @media (min-width: 780px) and (max-width: 900px) and (max-height: 500px) {
+            body {
+                padding: 0.5rem;
+            }
+            
+            .app-container {
+                padding: 1rem;
+                max-width: 100%;
+            }
+            
+            .scores-container {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: center;
+                margin-bottom: 0.5rem;
+            }
+            
+            .team-section {
+                width: clamp(180px, 60vw, 16rem);
+                padding: 0.75rem;
+                min-height: auto;
+            }
+            
+            .score-display {
+                font-size: clamp(2.5rem, 12vw, 5rem);
+                margin: 0.25rem 0;
+            }
+            
+            .team-name {
+                font-size: 1rem;
+                margin-bottom: 0.125rem;
+            }
+            
+            .serving-indicator {
+                font-size: 0.75rem;
+                height: 1rem;
+            }
+            
+            .score-button {
+                width: 2.5rem;
+                height: 2.5rem;
+                font-size: 1.25rem;
+            }
+            
+            .controls-container {
+                gap: 0.75rem;
+                margin-top: 0.5rem;
+            }
+            
+            .control-button {
+                padding: 0.5rem 1.5rem;
+                font-size: 0.875rem;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .scores-container {
+                gap: 3rem;
+            }
+        }
+
+        /* 隊伍區域 */
+        .team-section {
+            flex: 0 1 auto;
+            width: clamp(240px, 90vw, 20rem);
+            background-color: #374151;
+            padding: clamp(1rem, 4vw, 1.5rem);
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        /* 橫向模式 - 隊伍卡片寬度調整 */
+        @media (orientation: landscape) {
+            .team-section {
+                width: auto;
+                flex: 1;
+                max-width: 50%;
+                min-width: 0;
+            }
+        }
+
+        /* 直向模式 - 隊伍卡片寬度調整 */
+        @media (orientation: portrait) {
+            .team-section {
+                width: clamp(240px, 80vw, 20rem);
+            }
+        }
+
+        /* 大螢幕優化 */
+        @media (min-width: 1024px) {
+            .team-section {
+                padding: clamp(1.5rem, 3vw, 2rem);
+            }
+        }
+
+        .team-content {
+            text-align: center;
+            flex: 1;
+            padding: 0 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (min-width: 1024px) {
+            .team-content {
+                padding: 0 1.5rem;
+            }
+        }
+
+        .team-name {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        /* 手機版 - 隊伍名稱 */
+        @media (max-width: 767px) {
+            .team-name {
+                font-size: 1rem;
+            }
+        }
+
+        /* 平板版 - 隊伍名稱 */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .team-name {
+                font-size: 1.25rem;
+            }
+        }
+
+        /* 電腦版 - 隊伍名稱 */
+        @media (min-width: 1024px) {
+            .team-name {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* 橫向模式 - 隊伍名稱調整 */
+        @media (orientation: landscape) {
+            .team-name {
+                margin-top: 1.5rem;
+                margin-bottom: 0.5rem;
+            }
+        }
+
+        /* 直向模式 - 隊伍名稱調整 */
+        @media (orientation: portrait) {
+            .team-name {
+                margin-bottom: 0.25rem;
+            }
+        }
+
+        .serving-indicator {
+            color: #2dd4bf;
+            font-weight: 600;
+            height: 1.25rem;
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+
+        /* 手機版 - 發球指示器 */
+        @media (max-width: 767px) {
+            .serving-indicator {
+                font-size: 0.75rem;
+            }
+        }
+
+        /* 平板版 - 發球指示器 */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .serving-indicator {
+                font-size: 0.875rem;
+            }
+        }
+
+        /* 電腦版 - 發球指示器 */
+        @media (min-width: 1024px) {
+            .serving-indicator {
+                font-size: 1rem;
+            }
+        }
+
+        /* 橫向模式 - 發球指示器調整 */
+        @media (orientation: landscape) {
+            .serving-indicator {
+                position: absolute;
+                top: 0.5rem;
+                left: 50%;
+                transform: translateX(-50%);
+                height: auto;
+                margin-bottom: 0;
+                z-index: 10;
+            }
+        }
+
+        /* 直向模式 - 發球指示器調整 */
+        @media (orientation: portrait) {
+            .serving-indicator {
+                height: 1.25rem;
+                margin-bottom: 0.25rem;
+            }
+        }
+
+        .score-display {
+            display: block;
+            font-weight: 800;
+            color: #5eead4;
+            font-size: clamp(4rem, 20vw, 8rem);
+            line-height: 1;
+            margin: 0.5rem 0;
+        }
+
+        /* 橫向模式 - 分數字體調整 */
+        @media (orientation: landscape) {
+            .score-display {
+                font-size: clamp(5rem, 15vh, 12rem);
+            }
+        }
+
+        /* 直向模式 - 分數字體調整 */
+        @media (orientation: portrait) {
+            .score-display {
+                font-size: clamp(4rem, 20vw, 8rem);
+            }
+        }
+
+        /* 按鈕樣式 */
+        .score-button {
+            width: 3rem;
+            height: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #14b8a6;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            border-radius: 50%;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        /* 橫向模式 - 按鈕尺寸調整 */
+        @media (orientation: landscape) {
+            .score-button {
+                width: 3.5rem;
+                height: 3.5rem;
+                font-size: 1.75rem;
+            }
+        }
+
+        /* 直向模式 - 按鈕尺寸調整 */
+        @media (orientation: portrait) {
+            .score-button {
+                width: 3rem;
+                height: 3rem;
+                font-size: 1.5rem;
+            }
+        }
+
+        .score-button:hover {
+            background-color: #0d9488;
+            transform: scale(1.05);
+        }
+
+        .score-button.deduct {
+            background-color: #4b5563;
+        }
+
+        .score-button.deduct:hover {
+            background-color: #6b7280;
+            transform: scale(1.05);
+        }
+
+        /* 控制按鈕容器 */
+        .controls-container {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: nowrap;
+            align-items: center;
+        }
+
+        /* 橫向模式 - 控制按鈕調整 */
+        @media (orientation: landscape) {
+            .controls-container {
+                gap: 1.5rem;
+                margin-top: 1.5rem;
+                flex-wrap: nowrap;
+            }
+        }
+
+        /* 直向模式 - 控制按鈕調整 */
+        @media (orientation: portrait) {
+            .controls-container {
+                gap: 1rem;
+                margin-top: 1rem;
+                flex-wrap: nowrap;
+            }
+        }
+
+        .control-button {
+            color: white;
+            font-weight: 700;
+            padding: 0.75rem 2rem;
+            border-radius: 9999px;
+            border: none;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1rem;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        /* 橫向模式 - 控制按鈕尺寸調整 */
+        @media (orientation: landscape) {
+            .control-button {
+                font-size: 0.875rem;
+                flex-shrink: 0;
+            }
+        }
+
+        /* 直向模式 - 控制按鈕尺寸調整 */
+        @media (orientation: portrait) {
+            .control-button {
+                padding: 0.75rem 2rem;
+                font-size: 1rem;
+                flex-shrink: 0;
+            }
+        }
+
+        .control-button:hover {
+            transform: scale(1.05);
+        }
+
+        .reset-button {
+            background-color: #ef4444;
+        }
+
+        .reset-button:hover {
+            background-color: #dc2626;
+        }
+
+        .fullscreen-button {
+            background-color: #3b82f6;
+        }
+
+        .fullscreen-button:hover {
+            background-color: #2563eb;
+        }
+
+        /* 模態視窗 */
         .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(17, 24, 39, 0.75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            opacity: 0;
+            visibility: hidden;
             transition: opacity 0.3s ease, visibility 0.3s ease;
         }
 
         .modal.is-active {
             opacity: 1;
             visibility: visible;
+        }
+
+        .modal-content {
+            background-color: #1f2937;
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 32rem;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            color: #9ca3af;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .modal-close:hover {
+            color: white;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #2dd4bf;
+        }
+
+        .modal-message {
+            font-size: 1.125rem;
+            color: #d1d5db;
+        }
+
+        .modal-button {
+            margin-top: 1.5rem;
+            background-color: #14b8a6;
+            color: white;
+            font-weight: 700;
+            padding: 0.5rem 1.5rem;
+            border-radius: 9999px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-button:hover {
+            background-color: #0d9488;
+            transform: scale(1.05);
         }
 
         /* 在窄螢幕橫向時隱藏標題 */
@@ -35,7 +720,7 @@
                 overflow: hidden;
             }
 
-            #app {
+            .app-container {
                 height: 100vh;
                 width: 100vw;
                 max-width: 100%;
@@ -44,48 +729,51 @@
                 margin: 0;
                 display: flex;
                 flex-direction: column;
+                justify-content: center;
             }
 
             .scores-container {
-                flex-grow: 1;
                 display: flex;
-                flex-direction: row;
-                gap: 0;
-                margin-bottom: 0;
+                flex-direction: column;
+                gap: 1.5rem;
+                align-items: center;
             }
 
-            #teamA, #teamB {
-                border-radius: 0;
-                padding-top: 2rem;
-                padding-bottom: 2rem;
+            .team-section {
+                flex: 0 1 auto;
+                min-width: 240px;
+                max-width: 20rem;
+                background-color: #374151;
+                padding: 1.5rem;
+                border-radius: 1rem;
                 display: flex;
                 align-items: center;
-                justify-content: center;
+                justify-content: space-between;
                 position: relative;
             }
-            
-            #teamA {
+
+            .team-section:first-child {
                 border-right: 2px solid #4a5568;
             }
 
             .score-button {
                 display: none;
             }
-            
-            /* 新增：專為橫向模式設定的超大字體 */
-            #scoreA, #scoreB {
+
+            /* 專為橫向模式設定的超大字體 */
+            .score-display {
                 font-size: clamp(5rem, 60vh, 25rem);
             }
 
-            #servingA, #servingB {
+            .serving-indicator {
                 position: absolute;
                 top: 1rem;
-                font-size: 1.5rem;
+                font-size: 1.2rem;
             }
 
             .controls-container {
                 position: fixed;
-                bottom: 1rem;
+                bottom: 0;
                 left: 50%;
                 transform: translateX(-50%);
                 z-index: 10;
@@ -98,68 +786,51 @@
     </style>
 </head>
 
-<body class="bg-gray-900 text-white p-4 flex items-center justify-center min-h-screen">
-
-    <div id="app" class="bg-gray-800 p-6 rounded-3xl shadow-2xl w-full max-w-lg mx-auto">
-        <div class="text-center mb-6 hide-title-on-landscape">
-            <h1 class="text-3xl md:text-5xl font-extrabold text-teal-400 drop-shadow-lg">羽球記分板</h1>
+<body>
+    <div id="app" class="app-container">
+        <div class="title-section hide-title-on-landscape">
+            <h1 class="main-title">羽球記分板</h1>
         </div>
 
-        <div class="flex flex-col md:flex-row flex-wrap justify-center items-stretch gap-6 md:gap-8 mb-4 scores-container">
-            <div id="teamA" class="flex-1 min-w-[240px] bg-gray-700 p-6 rounded-2xl flex items-center justify-between">
+        <div class="scores-container">
+            <div id="teamA" class="team-section">
+                <button onclick="scorePoint(0)" class="score-button">+</button>
 
-                <button onclick="scorePoint(0)"
-                    class="score-button w-12 h-12 flex items-center justify-center bg-teal-500 hover:bg-teal-600 text-white text-2xl font-bold rounded-full shadow-md">+</button>
-
-                <div class="text-center flex-1 px-4">
-                    <h2 id="teamAName" class="text-lg md:text-2xl font-bold mb-1">隊伍A</h2>
-                    <p id="servingA" class="text-teal-400 font-semibold h-5 text-sm md:text-base"></p>
-                    <span id="scoreA"
-                        class="block font-extrabold text-teal-300 text-[clamp(5rem,25vw,10rem)] leading-none">0</span>
+                <div class="team-content">
+                    <h2 id="teamAName" class="team-name">隊伍A</h2>
+                    <p id="servingA" class="serving-indicator"></p>
+                    <span id="scoreA" class="score-display">0</span>
                 </div>
 
-                <button onclick="deductPoint(0)"
-                    class="score-button w-12 h-12 flex items-center justify-center bg-gray-600 hover:bg-gray-500 text-white text-2xl font-bold rounded-full shadow-md">-</button>
+                <button onclick="deductPoint(0)" class="score-button deduct">-</button>
             </div>
 
-            <div id="teamB" class="flex-1 min-w-[240px] bg-gray-700 p-6 rounded-2xl flex items-center justify-between">
+            <div id="teamB" class="team-section">
+                <button onclick="scorePoint(1)" class="score-button">+</button>
 
-                <button onclick="scorePoint(1)"
-                    class="score-button w-12 h-12 flex items-center justify-center bg-teal-500 hover:bg-teal-600 text-white text-2xl font-bold rounded-full shadow-md">+</button>
-
-                <div class="text-center flex-1 px-4">
-                    <h2 id="teamBName" class="text-lg md:text-2xl font-bold mb-1">隊伍B</h2>
-                    <p id="servingB" class="text-teal-400 font-semibold h-5 text-sm md:text-base"></p>
-                    <span id="scoreB"
-                        class="block font-extrabold text-teal-300 text-[clamp(5rem,25vw,10rem)] leading-none">0</span>
+                <div class="team-content">
+                    <h2 id="teamBName" class="team-name">隊伍B</h2>
+                    <p id="servingB" class="serving-indicator"></p>
+                    <span id="scoreB" class="score-display">0</span>
                 </div>
 
-                <button onclick="deductPoint(1)"
-                    class="score-button w-12 h-12 flex items-center justify-center bg-gray-600 hover:bg-gray-500 text-white text-2xl font-bold rounded-full shadow-md">-</button>
+                <button onclick="deductPoint(1)" class="score-button deduct">-</button>
             </div>
         </div>
 
-        <div class="flex justify-center gap-4 controls-container">
-            <button id="resetButton"
-                class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:scale-105 transition"
-                onclick="resetGame()">重新開始</button>
-            <button id="fullscreenButton"
-                class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:scale-105 transition"
+        <div class="controls-container">
+            <button id="resetButton" class="control-button reset-button" onclick="resetGame()">重新開始</button>
+            <button id="fullscreenButton" class="control-button fullscreen-button"
                 onclick="toggleFullScreen()">全螢幕</button>
         </div>
     </div>
 
-    <div id="modal"
-        class="modal fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 opacity-0 invisible">
-        <div class="bg-gray-800 rounded-2xl p-8 max-w-lg w-full text-center shadow-2xl relative">
-            <button class="absolute top-4 right-4 text-gray-400 hover:text-white" onclick="closeModal()">
-                ✕
-            </button>
-            <h3 id="modalTitle" class="text-2xl font-bold mb-4 text-teal-400"></h3>
-            <p id="modalMessage" class="text-lg text-gray-300"></p>
-            <button
-                class="mt-6 bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-6 rounded-full hover:scale-105 transition"
-                onclick="closeModal()">確認</button>
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">✕</button>
+            <h3 id="modalTitle" class="modal-title"></h3>
+            <p id="modalMessage" class="modal-message"></p>
+            <button class="modal-button" onclick="closeModal()">確認</button>
         </div>
     </div>
 
@@ -274,7 +945,7 @@
             updateUI();
             showModal("遊戲重置", "比賽已重置。");
         }
-        
+
         // 全螢幕功能
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
