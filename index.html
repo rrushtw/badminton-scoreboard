@@ -109,7 +109,7 @@
                 width: 100%;
                 max-width: 100%;
             }
-            
+
             .team-section {
                 flex: 1;
                 width: 50%;
@@ -133,21 +133,21 @@
                 min-height: 100vh;
                 overflow-y: auto;
             }
-            
+
             .app-container {
                 padding: 0.5rem;
                 max-width: 100%;
                 min-height: calc(100vh - 0.25rem);
             }
-            
+
             .title-section {
                 margin-bottom: 0.5rem;
             }
-            
+
             .main-title {
                 font-size: 1.25rem;
             }
-            
+
             .scores-container {
                 display: flex;
                 flex-direction: column;
@@ -155,42 +155,42 @@
                 align-items: center;
                 margin-bottom: 0.25rem;
             }
-            
+
             .team-section {
                 width: 100%;
                 max-width: 100%;
                 padding: 0.375rem;
                 min-height: auto;
             }
-            
+
             .score-display {
                 font-size: clamp(1.5rem, 8vw, 3rem);
                 margin: 0.0625rem 0;
             }
-            
+
             .team-name {
                 font-size: 0.75rem;
                 margin-bottom: 0.03125rem;
             }
-            
+
             .serving-indicator {
                 font-size: 0.5rem;
                 height: 0.75rem;
             }
-            
+
             .score-button {
                 width: 1.5rem;
                 height: 1.5rem;
                 font-size: 0.75rem;
             }
-            
+
             .controls-container {
                 gap: 0.25rem;
                 margin-top: 0.25rem;
                 flex-wrap: wrap;
                 justify-content: center;
             }
-            
+
             .control-button {
                 padding: 0.25rem 0.75rem;
                 font-size: 0.625rem;
@@ -206,21 +206,21 @@
                 min-height: 100vh;
                 overflow-y: auto;
             }
-            
+
             .app-container {
                 padding: 0.75rem;
                 max-width: 100%;
                 min-height: calc(100vh - 0.5rem);
             }
-            
+
             .title-section {
                 margin-bottom: 0.75rem;
             }
-            
+
             .main-title {
                 font-size: 1.5rem;
             }
-            
+
             .scores-container {
                 display: flex;
                 flex-direction: column;
@@ -228,39 +228,39 @@
                 align-items: center;
                 margin-bottom: 0.375rem;
             }
-            
+
             .team-section {
                 width: clamp(160px, 55vw, 14rem);
                 padding: 0.5rem;
                 min-height: auto;
             }
-            
+
             .score-display {
                 font-size: clamp(2rem, 10vw, 4rem);
                 margin: 0.125rem 0;
             }
-            
+
             .team-name {
                 font-size: 0.875rem;
                 margin-bottom: 0.0625rem;
             }
-            
+
             .serving-indicator {
                 font-size: 0.625rem;
                 height: 0.875rem;
             }
-            
+
             .score-button {
                 width: 2rem;
                 height: 2rem;
                 font-size: 1rem;
             }
-            
+
             .controls-container {
                 gap: 0.5rem;
                 margin-top: 0.375rem;
             }
-            
+
             .control-button {
                 padding: 0.375rem 1rem;
                 font-size: 0.75rem;
@@ -272,12 +272,12 @@
             body {
                 padding: 0.5rem;
             }
-            
+
             .app-container {
                 padding: 1rem;
                 max-width: 100%;
             }
-            
+
             .scores-container {
                 display: flex;
                 flex-direction: column;
@@ -285,39 +285,39 @@
                 align-items: center;
                 margin-bottom: 0.5rem;
             }
-            
+
             .team-section {
                 width: clamp(180px, 60vw, 16rem);
                 padding: 0.75rem;
                 min-height: auto;
             }
-            
+
             .score-display {
                 font-size: clamp(2.5rem, 12vw, 5rem);
                 margin: 0.25rem 0;
             }
-            
+
             .team-name {
                 font-size: 1rem;
                 margin-bottom: 0.125rem;
             }
-            
+
             .serving-indicator {
                 font-size: 0.75rem;
                 height: 1rem;
             }
-            
+
             .score-button {
                 width: 2.5rem;
                 height: 2.5rem;
                 font-size: 1.25rem;
             }
-            
+
             .controls-container {
                 gap: 0.75rem;
                 margin-top: 0.5rem;
             }
-            
+
             .control-button {
                 padding: 0.5rem 1.5rem;
                 font-size: 0.875rem;
@@ -884,33 +884,41 @@
             const score1 = scores[0];
             const score2 = scores[1];
 
-            if (score1 >= 21 || score2 >= 21) {
-                if (Math.abs(score1 - score2) >= 2) {
-                    gameOver = true;
-                    let winner = score1 > score2 ? teamNames[0] : teamNames[1];
-                    showModal("比賽結束！", `恭喜 ${winner} 贏得比賽！`);
-                } else if (score1 === 29 && score2 === 29) {
-                    // 29-29平手，下一分者直接獲勝
-                    if (score1 === 30) {
-                        gameOver = true;
-                        showModal("比賽結束！", `恭喜 ${teamNames[0]} 贏得比賽！`);
-                    } else if (score2 === 30) {
-                        gameOver = true;
-                        showModal("比賽結束！", `恭喜 ${teamNames[1]} 贏得比賽！`);
-                    }
-                }
+            // 修正：優先判斷 29-29 的情況
+            if (score1 === 29 && score2 === 29) {
+                // deuce 情況下，誰先到 30 誰就贏
+                // 這個判斷會在 scorePoint 中處理，這裡主要是防止後續的 21 分規則誤判
+                return; // 暫時不宣告比賽結束，等待下一分
+            }
+
+            // 判斷是否有一方達到 30 分
+            if (score1 === 30) {
+                gameOver = true;
+                showModal("比賽結束！", `恭喜 ${teamNames[0]} 贏得比賽！`);
+                return;
+            }
+            if (score2 === 30) {
+                gameOver = true;
+                showModal("比賽結束！", `恭喜 ${teamNames[1]} 贏得比賽！`);
+                return;
+            }
+
+            // 一般情況：達到 21 分且領先 2 分
+            if ((score1 >= 21 || score2 >= 21) && Math.abs(score1 - score2) >= 2) {
+                gameOver = true;
+                let winner = score1 > score2 ? teamNames[0] : teamNames[1];
+                showModal("比賽結束！", `恭喜 ${winner} 贏得比賽！`);
             }
         }
 
-        // 計分功能 (上滑)
+        // 計分功能 (上滑或點擊)
         function scorePoint(winningTeamIndex) {
             if (gameOver) return;
 
-            // *** 已移除11分換邊提示的功能 ***
-            // const totalScore = scores[0] + scores[1];
-            // if (totalScore === 10) {
-            //     showModal("換邊提示", "兩隊總分達到 11 分，請換邊。");
-            // }
+            // 修正：增加分數上限檢查，防止超過 30 分
+            if (scores[0] >= 30 || scores[1] >= 30) {
+                return; // 如果任一方已達 30 分，則不再加分
+            }
 
             // 如果得分方是當前的發球方
             if (winningTeamIndex === servingTeamIndex) {
@@ -925,7 +933,7 @@
             checkGameOver();
         }
 
-        // 扣分功能 (下滑)
+        // 扣分功能 (下滑或點擊)
         function deductPoint(teamIndex) {
             if (gameOver) return;
             if (scores[teamIndex] > 0) {
