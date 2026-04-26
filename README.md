@@ -24,7 +24,7 @@
 ## 🛠️ 技術棧
 
 * **HTML5**
-* **Tailwind CSS (via CDN)**：一個功能優先的 CSS 框架，用於快速建構現代化介面。
+* **Vanilla CSS3**：手寫樣式（內嵌於 `index.html` 的 `<style>` 區塊），無使用任何框架。
 * **Vanilla JavaScript (ES6+)**：無任何框架，輕量且高效。
 
 ## 🚀 如何使用
